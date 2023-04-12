@@ -1,5 +1,10 @@
+import { CoursesService } from './../services/courses.service';
 import { Component } from '@angular/core';
 import { Course } from '../model/course';
+import { Observable, catchError, of } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { ErrorDialogComponent } from 'src/app/shared/components/error-dialog/error-dialog.component';
+
 
 @Component({
   selector: 'app-courses',
@@ -7,19 +12,29 @@ import { Course } from '../model/course';
   styleUrls: ['./courses.component.scss'],
 })
 export class CoursesComponent {
-  courses: Course[] = [
-    { _id: '1', name: 'Hydrogen', category: 'H' },
-    { _id: '2', name: 'Helium', category: 'He' },
-    { _id: '3', name: 'Lithium', category: 'Li' },
-    { _id: '4', name: 'Beryllium', category: 'Be' },
-    { _id: '5', name: 'Boron', category: 'B' },
-    { _id: '6', name: 'Carbon', category: 'C' },
-    { _id: '7', name: 'Nitrogen', category: 'N' },
-    { _id: '8', name: 'Oxygen', category: 'O' },
-    { _id: '9', name: 'Fluorine', category: 'F' },
-    { _id: '10', name: 'Neon', category: 'Ne' },
-  ];
+  courses$: Observable<Course[]>;
   displayedColumns = ['name', 'category'];
 
-  constructor() {}
+  //coursesService: CoursesService;
+
+  constructor(
+    private coursesService: CoursesService,
+    public dialog: MatDialog
+    ) {
+    //this.coursesService = new CoursesService();
+    this.courses$ = this.coursesService.list()
+    .pipe(
+      catchError(error => {
+        this.onError('Erro ao carregar cursos.')
+        return of([])
+      })
+    );
+  }
+
+  onError(errorMsg: string) {
+    this.dialog.open(ErrorDialogComponent, {
+      data: errorMsg
+    });
+  }
+
 }
